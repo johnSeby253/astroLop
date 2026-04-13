@@ -77,16 +77,28 @@ const CallById = () => {
         return () => clearInterval(interval);
     }, [status]);
 
+
+
     const toggleMute = async () => {
+        if (!localAudioRef.current) return;
+
         const newMuted = !isMuted;
         setIsMuted(newMuted);
 
-        if (localAudioRef.current) {
-            await localAudioRef.current.setEnabled(!newMuted);
+        try {
+            if (newMuted) {
+                await localAudioRef.current.setEnabled(false); // mute
+            } else {
+                await localAudioRef.current.setEnabled(true); // unmute
+            }
+        } catch (err) {
+            console.error("Mute toggle error:", err);
         }
     };
 
 
+
+    
     const endCall = useCallback(async () => {
         try {
             setStatus("ended");
