@@ -7,9 +7,35 @@ import { useState } from 'react';
 import AllrequestTab from './PendingReqTabs/ExpertTabs/AllrequestTab';
 import VastuRequest from './PendingReqTabs/ExpertTabs/VastuRequest';
 import PoojaRequest from './PendingReqTabs/ExpertTabs/PoojaRequest';
+import { getSocket } from '@/lib/socket';
 
 const AstroPendingRequest = () => {
     const isExpert = localStorage.getItem("isExpert") === "true";
+    const [requests, setRequests] = useState([]);
+
+    useEffect(() => {
+        const socket = getSocket();
+
+        const receiverId = localStorage.getItem("astrologer_id"); // or astrologer id
+
+        socket.emit("join-astrologer", receiverId);
+
+        const handleIncomingCall = (data) => {
+            setRequests((prev) => [...prev, { ...data, type: "call" }]);
+        };
+
+        const handleIncomingChat = (data) => {
+            setRequests((prev) => [...prev, { ...data, type: "chat" }]);
+        };
+
+        socket.on("incoming-call", handleIncomingCall);
+        socket.on("incoming-chat", handleIncomingChat);
+
+        return () => {
+            socket.off("incoming-call", handleIncomingCall);
+            socket.off("incoming-chat", handleIncomingChat);
+        };
+    }, []);
 
 
     // Define tabs outside of the if/else
@@ -31,9 +57,6 @@ const AstroPendingRequest = () => {
     );
 
 
-
-
-
     return (
         <div className='px-4 flex flex-col gap-3'>
             <div className="w-full px-6 sm:px-9 py-4 sm:py-6 bg-white rounded-xl shadow-md flex flex-col gap-2.5">
@@ -49,14 +72,19 @@ const AstroPendingRequest = () => {
 
             <div>
                 <CustomTabs
-                    tabs={tabs}
+                    tabs={tabs.map(tab => ({
+                        ...tab,
+                        props: {
+                            requests
+                        }
+                    }))}
                     variant='astroTabs'
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                 />
             </div>
 
-     
+
 
         </div>
     )

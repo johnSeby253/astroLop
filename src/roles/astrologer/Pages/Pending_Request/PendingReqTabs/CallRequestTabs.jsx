@@ -6,8 +6,9 @@ import { Clock, Phone, Tag } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
-const CallRequestTabs = () => {
-    const [incomingCall, setIncomingCall] = useState([]);
+const CallRequestTabs = ({ requests }) => {
+    const callRequests = requests.filter(r => r.type === "call");
+    // const [incomingCall, setIncomingCall] = useState([]);
     const [micStatus, setMicStatus] = useState("");
     const [callData, setCallData] = useState({
         callerId: "",
@@ -21,9 +22,9 @@ const CallRequestTabs = () => {
     const navigate = useNavigate();
 
 
-    if (!clientRef.current) {
+    useEffect(() => {
         clientRef.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-    }
+    }, []);
 
     useEffect(() => {
         const client = clientRef.current;
@@ -39,31 +40,31 @@ const CallRequestTabs = () => {
 
     console.log("🔥 COMPONENT RENDERED");
 
-    useEffect(() => {
-        console.log("USEEFFECT RAN");
+    // useEffect(() => {
+    //     console.log("USEEFFECT RAN");
 
-        const socket = getSocket();
+    //     const socket = getSocket();
 
-        socket.on("connect", () => {
-            console.log("Connected:", socket.id);
+    //     socket.on("connect", () => {
+    //         console.log("Connected:", socket.id);
 
-            const receiverId = "69d37c85addf0dba162b2d10";
-            socket.emit("join-astrologer", receiverId);
-        });
+    //         const receiverId = "69d37c85addf0dba162b2d10";
+    //         socket.emit("join-astrologer", receiverId);
+    //     });
 
-        // ✅ ADD THIS
-        const handleIncomingCall = (data) => {
-            console.log("📞 Incoming Call:", data);
+    //     // ✅ ADD THIS
+    //     const handleIncomingCall = (data) => {
+    //         console.log("📞 Incoming Call:", data);
 
-            setIncomingCall((prev) => [...prev, data]);
-        };
+    //         setIncomingCall((prev) => [...prev, data]);
+    //     };
 
-        socket.on("incoming-call", handleIncomingCall);
+    //     socket.on("incoming-call", handleIncomingCall);
 
-        return () => {
-            socket.off("incoming-call", handleIncomingCall);
-        };
-    }, []);
+    //     return () => {
+    //         socket.off("incoming-call", handleIncomingCall);
+    //     };
+    // }, []);
 
 
     const handleCall = async (data) => {
@@ -94,9 +95,6 @@ const CallRequestTabs = () => {
             // 👉 Now join Agora
             await client.join(APP_ID, channelName, token, uid);
             const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-          
-
-
             await client.publish([micTrack]);
             navigate(`/call/${data.callerId}`)
 
@@ -110,7 +108,7 @@ const CallRequestTabs = () => {
 
     return (
         <div className='py-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4  gap-4'>
-            {incomingCall.map((request) => (
+            {callRequests.map((request) => (
                 <div key={request.channelName} className="w-full max-w-md p-4 bg-white rounded-3xl shadow-card flex flex-col gap-4">
 
                     {/* Top Section */}
