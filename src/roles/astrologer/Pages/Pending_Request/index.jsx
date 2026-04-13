@@ -16,11 +16,17 @@ const AstroPendingRequest = () => {
     useEffect(() => {
         const socket = getSocket();
 
-        const receiverId = localStorage.getItem("astrologer_id"); // or astrologer id
+        socket.on("connect", () => {
+            console.log("Connected:", socket.id);
 
-        socket.emit("join-astrologer", receiverId);
+            const receiverId = localStorage.getItem("astrologer_id");
+            console.log("receiverId", receiverId);
+
+            socket.emit("join-astrologer", receiverId);
+        });
 
         const handleIncomingCall = (data) => {
+            console.log("Data", data);
             setRequests((prev) => [...prev, { ...data, type: "call" }]);
         };
 
@@ -72,12 +78,8 @@ const AstroPendingRequest = () => {
 
             <div>
                 <CustomTabs
-                    tabs={tabs.map(tab => ({
-                        ...tab,
-                        props: {
-                            requests
-                        }
-                    }))}
+                    tabs={tabs}
+                    requests={requests}
                     variant='astroTabs'
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}

@@ -4,6 +4,7 @@ import { List } from "lucide-react";
 
 const CustomTabs = ({
   tabs,
+  requests,
   activeTab,
   setActiveTab,
   variant = "default", // NEW
@@ -80,7 +81,7 @@ const CustomTabs = ({
 
         return (
           <TabsContent key={tab.value} value={tab.value}>
-            <Component setActiveTab={setActiveTab} />
+            <Component setActiveTab={setActiveTab} requests={requests} />
           </TabsContent>
         );
       })}
