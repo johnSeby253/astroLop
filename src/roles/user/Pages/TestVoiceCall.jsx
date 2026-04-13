@@ -18,56 +18,69 @@ const TestVoiceCall = () => {
     }
 
 
-   const handleCall = async () => {
-    try {
-        const caller_id = "69d8bce86bc2c8f40f1074d6";
-        const sender_id = "69d37c85addf0dba162b2d10";
-
-        const response = await getAgoraToken({
-            callerId: caller_id,
-            receiverId: sender_id,
-            userRole: "caller"
-        });
-
-        const { token, channelName, uid } = response;
-
+    React.useEffect(() => {
         const client = clientRef.current;
 
-        // IMPORTANT: register listener ONCE (not inside click ideally)
-        client.on("user-published", async (user, mediaType) => {
+        const handleUserPublished = async (user, mediaType) => {
             await client.subscribe(user, mediaType);
 
             if (mediaType === "audio") {
                 console.log("🔊 Remote audio playing");
-                user.audioTrack.play();
+
+                if (user.audioTrack) {
+                    user.audioTrack.play();
+                }
             }
-        });
+        };
 
-        // JOIN CHANNEL
-        await client.join(APP_ID, channelName, token, uid);
+        client.on("user-published", handleUserPublished);
 
-        // OPTIONAL: handle already existing users
-        client.remoteUsers.forEach(async (user) => {
-            if (user.hasAudio) {
-                await client.subscribe(user, "audio");
-                user.audioTrack.play();
-            }
-        });
+        return () => {
+            client.off("user-published", handleUserPublished);
+        };
+    }, []);
 
-        // CREATE MIC TRACK (ONLY THIS)
-        const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
 
-        // IMPORTANT: keep reference alive (mobile fix)
-        window.localMicTrack = micTrack;
+    const handleCall = async () => {
+        try {
+            const caller_id = "69d8bce86bc2c8f40f1074d6";
+            const sender_id = "69d37c85addf0dba162b2d10";
 
-        await client.publish([micTrack]);
+            const response = await getAgoraToken({
+                callerId: caller_id,
+                receiverId: sender_id,
+                userRole: "caller"
+            });
 
-        setInCall(true);
+            const { token, channelName, uid } = response;
 
-    } catch (err) {
-        console.error("Agora call error:", err);
-    }
-};
+            const client = clientRef.current;
+
+            // JOIN CHANNEL
+            await client.join(APP_ID, channelName, token, uid);
+
+            // handle existing users
+            client.remoteUsers.forEach(async (user) => {
+                if (user.hasAudio) {
+                    await client.subscribe(user, "audio");
+                    user.audioTrack.play();
+                }
+            });
+
+            // CREATE MIC TRACK (ONLY THIS)
+            const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+
+            // IMPORTANT FOR MOBILE
+            window.localMicTrack = micTrack;
+
+            await client.publish([micTrack]);
+
+            setInCall(true);
+
+        } catch (err) {
+            console.error("Agora call error:", err);
+        }
+    };
 
     return (
         <>
