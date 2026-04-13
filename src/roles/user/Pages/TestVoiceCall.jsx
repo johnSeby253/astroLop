@@ -5,7 +5,7 @@ import VoiceCallScreen from './VoiceCallScreen'
 import { useRtcToken } from '@/roles/public/agoraCalls/Api_Queries/query'
 import AgoraRTC from 'agora-rtc-sdk-ng'
 
-const TestVoiceCall = ({ callerId, receiverId }) => {
+const TestVoiceCall = () => {
     const [inCall, setInCall] = useState(false);
     const [connecting, setConnecting] = useState(false);
     const [error, setError] = useState(null);
@@ -49,9 +49,12 @@ const TestVoiceCall = ({ callerId, receiverId }) => {
         try {
             const client = clientRef.current;
 
+            const caller_id = "69d8bce86bc2c8f40f1074d6";
+            const sender_id = "69d37c85addf0dba162b2d10";
+
             const response = await getAgoraToken({
-                callerId: callerId,       // FIX 4: Use props instead of hardcoded IDs
-                receiverId: receiverId,
+                callerId: caller_id,       // FIX 4: Use props instead of hardcoded IDs
+                receiverId: sender_id,
                 userRole: "caller"
             });
 
