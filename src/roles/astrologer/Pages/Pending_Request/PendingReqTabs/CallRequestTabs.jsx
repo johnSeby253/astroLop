@@ -28,36 +28,14 @@ const CallRequestTabs = () => {
     useEffect(() => {
         const client = clientRef.current;
 
-        const handleUserPublished = async (user, mediaType) => {
-            try {
-                await client.subscribe(user, mediaType);
+        client.on("user-published", async (user, mediaType) => {
+            await client.subscribe(user, mediaType);
 
-                if (mediaType === "audio") {
-                    console.log("🔊 Remote audio received");
-
-                    if (user.audioTrack) {
-                        user.audioTrack.play();
-                    }
-                }
-            } catch (err) {
-                console.error("Subscribe error:", err);
+            if (mediaType === "audio") {
+                user.audioTrack.play();
             }
-        };
-
-        const handleUserJoined = (user) => {
-            console.log("User joined:", user.uid);
-        };
-
-        client.on("user-published", handleUserPublished);
-        client.on("user-joined", handleUserJoined);
-
-        return () => {
-            client.off("user-published", handleUserPublished);
-            client.off("user-joined", handleUserJoined);
-        };
+        });
     }, []);
-
-
 
     console.log("🔥 COMPONENT RENDERED");
 
@@ -114,10 +92,11 @@ const CallRequestTabs = () => {
             console.log("Token:", token);
             const client = clientRef.current;
             // 👉 Now join Agora
-            client.enableAudio();
             await client.join(APP_ID, channelName, token, uid);
             const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-            window.localMicTrack = micTrack;
+          
+
+
             await client.publish([micTrack]);
             navigate(`/call/${data.callerId}`)
 
