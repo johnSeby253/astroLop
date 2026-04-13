@@ -9,6 +9,7 @@ const CallById = () => {
     const { id: callId } = useParams();
     const { state } = useLocation();
     const clientRef = useRef(null);
+    const localAudioRef = useRef(null);
     const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
     // console.log("State", state);
     const navigate = useNavigate();
@@ -52,6 +53,7 @@ const CallById = () => {
                 await client.join(APP_ID, channelName, token, uid);
 
                 const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                localAudioRef.current = micTrack;
                 await client.publish([micTrack]);
 
                 console.log("Joined Agora channel:", channelName);
@@ -80,11 +82,7 @@ const CallById = () => {
         setIsMuted(newMuted);
 
         if (localAudioRef.current) {
-            if (newMuted) {
-                await localAudioRef.current.setEnabled(false); // MUTE
-            } else {
-                await localAudioRef.current.setEnabled(true);  // UNMUTE
-            }
+            await localAudioRef.current.setEnabled(!newMuted);
         }
     };
 
@@ -93,27 +91,38 @@ const CallById = () => {
         try {
             setStatus("ended");
 
-            // 1. stop & close mic
-            if (localAudioRef.current) {
+            const client = clientRef.current;
+
+            // 1. STOP REMOTE AUDIO (IMPORTANT FIX)
+            client.remoteUsers.forEach((user) => {
+                user.audioTrack?.stop();
+                user.audioTrack?.close?.();
+            });
+
+            // 2. UNPUBLISH LOCAL TRACK
+            if (localAudioRef.current && client) {
+                await client.unpublish(localAudioRef.current);
+
                 localAudioRef.current.stop();
                 localAudioRef.current.close();
+                localAudioRef.current = null;
             }
 
-            // 2. leave agora channel
-            if (clientRef.current) {
-                await clientRef.current.leave();
+            // 3. LEAVE CHANNEL
+            if (client) {
+                await client.leave();
             }
 
-            // 3. notify backend (optional but recommended)
-            // const socket = getSocket();
-            // socket.emit("call-ended", { callId });
+            // 4. REMOVE ALL LISTENERS
+            client.removeAllListeners();
 
-            // 4. redirect
-            navigate(-1); // or back
+            // 5. SAFE NAVIGATION
+            navigate("/astrologer-pendingRequest");
+
         } catch (err) {
             console.error("Error ending call:", err);
         }
-    }, [callId, navigate]);
+    }, [navigate]);
 
 
     const formatTime = (sec) => {
