@@ -18,64 +18,56 @@ const TestVoiceCall = () => {
     }
 
 
-    const handleCall = async () => {
-        try {
-            const caller_id = "69d8bce86bc2c8f40f1074d6";
-            const sender_id = "69d37c85addf0dba162b2d10";
+   const handleCall = async () => {
+    try {
+        const caller_id = "69d8bce86bc2c8f40f1074d6";
+        const sender_id = "69d37c85addf0dba162b2d10";
 
-            if (!caller_id || !sender_id) {
-                console.error("Caller or Receiver ID missing");
-                return;
+        const response = await getAgoraToken({
+            callerId: caller_id,
+            receiverId: sender_id,
+            userRole: "caller"
+        });
+
+        const { token, channelName, uid } = response;
+
+        const client = clientRef.current;
+
+        // IMPORTANT: register listener ONCE (not inside click ideally)
+        client.on("user-published", async (user, mediaType) => {
+            await client.subscribe(user, mediaType);
+
+            if (mediaType === "audio") {
+                console.log("🔊 Remote audio playing");
+                user.audioTrack.play();
             }
-            const response = await getAgoraToken({
-                callerId: caller_id,
-                receiverId: sender_id,
-                userRole: "caller"
-            });
-            console.log("Full Response:", response);
+        });
 
-            const { token, channelName, uid } = response;
+        // JOIN CHANNEL
+        await client.join(APP_ID, channelName, token, uid);
 
-            // 👉 now you can use these for Agora join
-            console.log("Token:", token);
-            console.log("Channel:", channelName);
-            const client = clientRef.current;
-            client.on("user-published", async (user, mediaType) => {
-                await client.subscribe(user, mediaType);
-
-                if (mediaType === "audio") {
-                    console.log("🔊 Receiver audio playing");
-                    user.audioTrack.play();
-                }
-            });
-            await client.join(APP_ID, channelName, token, uid);
-            client.remoteUsers.forEach(async (user) => {
-                if (user.hasAudio) {
-                    console.log("🔁 Existing user audio found");
-
-                    await client.subscribe(user, "audio");
-                    user.audioTrack.play();
-                }
-            });
-            const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            if (stream.active == true || stream.active == "true") {
-                setMicStatus("true")
-            } else {
-                setMicStatus("false")
+        // OPTIONAL: handle already existing users
+        client.remoteUsers.forEach(async (user) => {
+            if (user.hasAudio) {
+                await client.subscribe(user, "audio");
+                user.audioTrack.play();
             }
-            setMicStatus(stream.active)
-            console.log("Mic enabled:", micTrack.enabled);
-            console.log("Mic muted:", micTrack.muted);
+        });
 
-            micTrack.setEnabled(true);
-            await client.publish([micTrack]);
-            setInCall(true)
+        // CREATE MIC TRACK (ONLY THIS)
+        const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
 
-        } catch (err) {
-            console.error("Error at generating Agora Token.....", err);
-        }
+        // IMPORTANT: keep reference alive (mobile fix)
+        window.localMicTrack = micTrack;
+
+        await client.publish([micTrack]);
+
+        setInCall(true);
+
+    } catch (err) {
+        console.error("Agora call error:", err);
     }
+};
 
     return (
         <>
