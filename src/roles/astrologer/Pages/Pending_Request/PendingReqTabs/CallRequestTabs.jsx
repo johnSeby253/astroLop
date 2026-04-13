@@ -6,7 +6,7 @@ import { Clock, Phone, Tag } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
-const CallRequestTabs = ({ requests }) => {
+const CallRequestTabs = ({ requests = [] }) => {
     const callRequests = requests.filter(r => r.type === "call");
     // const [incomingCall, setIncomingCall] = useState([]);
     const [micStatus, setMicStatus] = useState("");
