@@ -200,6 +200,7 @@ export const Astrologer_routes = [
         path: '/call/:id',
         label: '',
         privetRoute: true,
+        call:true,
         isSubRoute: false,
         pageTitle: 'Settings',
         component: CallById,

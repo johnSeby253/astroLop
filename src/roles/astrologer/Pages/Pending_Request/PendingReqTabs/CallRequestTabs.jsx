@@ -43,32 +43,7 @@ const CallRequestTabs = ({ requests=[] }) => {
 
     console.log("🔥 COMPONENT RENDERED");
 
-    // useEffect(() => {
-    //     console.log("USEEFFECT RAN");
-
-    //     const socket = getSocket();
-
-    //     socket.on("connect", () => {
-    //         console.log("Connected:", socket.id);
-
-    //         const receiverId = "69d37c85addf0dba162b2d10";
-    //         socket.emit("join-astrologer", receiverId);
-    //     });
-
-    //     // ✅ ADD THIS
-    //     const handleIncomingCall = (data) => {
-    //         console.log("📞 Incoming Call:", data);
-
-    //         setIncomingCall((prev) => [...prev, data]);
-    //     };
-
-    //     socket.on("incoming-call", handleIncomingCall);
-
-    //     return () => {
-    //         socket.off("incoming-call", handleIncomingCall);
-    //     };
-    // }, []);
-
+ 
 
     const handleCall = async (data) => {
         try {
