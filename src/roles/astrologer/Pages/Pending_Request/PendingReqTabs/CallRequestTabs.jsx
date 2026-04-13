@@ -6,44 +6,21 @@ import { Clock, Phone, Tag } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
-const CallRequestTabs = ({ requests=[] }) => {
+const CallRequestTabs = ({ requests = [] }) => {
 
-    console.log("Request",requests);
-    
+    console.log("Request", requests);
+
     const callRequests = requests.filter(r => r.type === "call");
-    // const [incomingCall, setIncomingCall] = useState([]);
-    const [micStatus, setMicStatus] = useState("");
     const [callData, setCallData] = useState({
         callerId: "",
         receiverId: "",
         channel: "",
         userRole: "receiver"
     });
-    const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
-    const clientRef = useRef(null);
     const { mutateAsync: getAgoraToken } = useRtcToken();
     const navigate = useNavigate();
 
 
-    useEffect(() => {
-        clientRef.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-    }, []);
-
-    useEffect(() => {
-        const client = clientRef.current;
-
-        client.on("user-published", async (user, mediaType) => {
-            await client.subscribe(user, mediaType);
-
-            if (mediaType === "audio") {
-                user.audioTrack.play();
-            }
-        });
-    }, []);
-
-    console.log("🔥 COMPONENT RENDERED");
-
- 
 
     const handleCall = async (data) => {
         try {
@@ -61,25 +38,58 @@ const CallRequestTabs = ({ requests=[] }) => {
             const res = await getAgoraToken(payload);
 
             console.log("Response", res);
-            if (res) {
-                setMicStatus("true")
-            } else {
-                setMicStatus("false")
-            }
+            navigate(`/call/${data.callerId}`, {
+                state: {
+                    tokenData: res,
+                    callData: payload
+                }
+            });
 
             const { token, channelName, uid } = res;
             console.log("Token:", token);
             const client = clientRef.current;
-            // 👉 Now join Agora
-            await client.join(APP_ID, channelName, token, uid);
-            const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-            await client.publish([micTrack]);
-            navigate(`/call/${data.callerId}`)
+            // // 👉 Now join Agora
+            // await client.join(APP_ID, channelName, token, uid);
+            // const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            // await client.publish([micTrack]);
+            // navigate(`/call/${data.callerId}`)
 
         } catch (err) {
             console.error("Error at Accepting Call", err);
         }
     };
+
+    //     const handleCall = async (data) => {
+    //     try {
+    //         console.log("jvhjdhfj");
+
+    //         const payload = {
+    //             callerId: data.callerId,
+    //             receiverId: data.receiverId,
+    //             userRole: "receiver",
+    //             channel: data.channelName
+    //         };
+
+    //         setCallData(payload);
+
+    //         const res = await getAgoraToken(payload);
+
+    //         console.log("Response", res);
+
+
+    //         const { token, channelName, uid } = res;
+    //         console.log("Token:", token);
+    //         const client = clientRef.current;
+    //         // 👉 Now join Agora
+    //         await client.join(APP_ID, channelName, token, uid);
+    //         const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    //         await client.publish([micTrack]);
+    //         navigate(`/call/${data.callerId}`)
+
+    //     } catch (err) {
+    //         console.error("Error at Accepting Call", err);
+    //     }
+    // };
 
 
 
@@ -98,8 +108,6 @@ const CallRequestTabs = ({ requests=[] }) => {
                                 <Phone size={18} />
                                 {request.type}
                             </div>
-
-                            <h1>tyyt{micStatus}</h1>
 
                             <div className="text-neutral-600 text-sm font-medium font-inter">{request.timeAgo}</div>
                         </div>

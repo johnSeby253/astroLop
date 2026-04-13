@@ -1,23 +1,77 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Mic, MicOff, PhoneOff } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { LogIn, Mic, MicOff, PhoneOff } from "lucide-react";
 import { getSocket } from "@/lib/socket";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import { useRtcToken } from "@/roles/public/agoraCalls/Api_Queries/query";
 
 const CallById = () => {
     const { id: callId } = useParams();
+    const { state } = useLocation();
+    const clientRef = useRef(null);
+    const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
+    // console.log("State", state);
     const navigate = useNavigate();
 
-    const [status, setStatus] = useState("connecting");
+    const [status, setStatus] = useState("Ongoing");
     const [isMuted, setIsMuted] = useState(false);
     const [seconds, setSeconds] = useState(0);
+    const { tokenData, callData } = state || {};
 
     useEffect(() => {
-        let interval;
-        interval = setInterval(() => {
+        const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+        clientRef.current = client;
+
+        const handleUserPublished = async (user, mediaType) => {
+            await client.subscribe(user, mediaType);
+
+            if (mediaType === "audio") {
+                user.audioTrack.play();
+            }
+        };
+
+        client.on("user-published", handleUserPublished);
+
+        return () => {
+            client.off("user-published", handleUserPublished);
+            client.leave();
+        };
+    }, []);
+
+
+
+    useEffect(() => {
+        if (!tokenData) return;
+
+        const joinCall = async () => {
+            try {
+                const client = clientRef.current;
+
+                const { token, channelName, uid } = tokenData;
+
+                await client.join(APP_ID, channelName, token, uid);
+
+                const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                await client.publish([micTrack]);
+
+                console.log("Joined Agora channel:", channelName);
+
+            } catch (err) {
+                console.error("Join call error:", err);
+            }
+        };
+
+        joinCall();
+    }, [tokenData]);
+
+
+    useEffect(() => {
+        if (status !== "Ongoing") return;
+
+        const interval = setInterval(() => {
             setSeconds((prev) => prev + 1);
         }, 1000);
+
         return () => clearInterval(interval);
     }, [status]);
 
@@ -26,31 +80,51 @@ const CallById = () => {
         setIsMuted(newMuted);
 
         if (localAudioRef.current) {
-            await localAudioRef.current.setMuted(newMuted);
+            if (newMuted) {
+                await localAudioRef.current.setEnabled(false); // MUTE
+            } else {
+                await localAudioRef.current.setEnabled(true);  // UNMUTE
+            }
         }
     };
 
-    // =========================
-    // FORMAT TIME
-    // =========================
+
+    const endCall = useCallback(async () => {
+        try {
+            setStatus("ended");
+
+            // 1. stop & close mic
+            if (localAudioRef.current) {
+                localAudioRef.current.stop();
+                localAudioRef.current.close();
+            }
+
+            // 2. leave agora channel
+            if (clientRef.current) {
+                await clientRef.current.leave();
+            }
+
+            // 3. notify backend (optional but recommended)
+            // const socket = getSocket();
+            // socket.emit("call-ended", { callId });
+
+            // 4. redirect
+            navigate(-1); // or back
+        } catch (err) {
+            console.error("Error ending call:", err);
+        }
+    }, [callId, navigate]);
+
+
     const formatTime = (sec) => {
         const m = Math.floor(sec / 60);
         const s = sec % 60;
         return `${m}:${s < 10 ? "0" : ""}${s}`;
     };
 
-    // =========================
-    // UI
-    // =========================
+
     return (
         <div className="h-screen w-full bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex flex-col items-center justify-center text-white relative">
-
-            <div className="absolute top-6 text-sm opacity-80">
-                {status === "connecting" && "Connecting..."}
-                {status === "ongoing" && "Call in progress"}
-                {status === "ended" && "Call ended"}
-            </div>
-
             <div className="flex flex-col items-center gap-3">
                 <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg">
                     U
@@ -59,12 +133,16 @@ const CallById = () => {
                 <h2 className="text-2xl font-semibold">Call</h2>
 
                 <p className="text-sm opacity-80">
-                    {status === "ongoing" ? formatTime(seconds) : "00:00"}
+                    {status === "Ongoing" ? formatTime(seconds) : "00:00"}
                 </p>
 
                 <span className="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">
                     Call ID: {callId}
                 </span>
+                <div className=" text-sm opacity-80">
+                    {status}...
+                </div>
+
             </div>
 
             <div className="flex gap-8 mt-12">
