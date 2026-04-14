@@ -1,24 +1,23 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { LogIn, Mic, MicOff, PhoneOff } from "lucide-react";
-import { getSocket } from "@/lib/socket";
+import { Mic, MicOff, PhoneOff } from "lucide-react";
 import AgoraRTC from "agora-rtc-sdk-ng";
-import { useRtcToken } from "@/roles/public/agoraCalls/Api_Queries/query";
 
-const CallById = () => {
-    const { id: callId } = useParams();
-    const { state } = useLocation();
+const CallById = ({ tokenData, callData, onEndCall }) => {
     const clientRef = useRef(null);
     const localAudioRef = useRef(null);
     const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
-    // console.log("State", state);
-    const navigate = useNavigate();
+    console.log("Call Data", callData);
+
 
     const [status, setStatus] = useState("Ongoing");
     const [isMuted, setIsMuted] = useState(false);
     const [seconds, setSeconds] = useState(0);
-    const { tokenData, callData } = state || {};
+    const joinedRef = useRef(false);
+    const endingRef = useRef(false);
 
+
+
+    // ✅ INIT CLIENT
     useEffect(() => {
         const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         clientRef.current = client;
@@ -35,38 +34,56 @@ const CallById = () => {
 
         return () => {
             client.off("user-published", handleUserPublished);
-            client.leave();
         };
     }, []);
 
-
-
+    // ✅ JOIN CALL
     useEffect(() => {
-        if (!tokenData) return;
+        let isMounted = true;
+
+        if (!tokenData || joinedRef.current) return;
 
         const joinCall = async () => {
             try {
                 const client = clientRef.current;
+                if (!client || !isMounted) return;
+                if (client.connectionState === "CONNECTED") {
+                    console.warn("⚠️ Already connected, skipping join");
+                    return;
+                }
 
                 const { token, channelName, uid } = tokenData;
 
+                console.log("Joining with UID:", uid);
+
                 await client.join(APP_ID, channelName, token, uid);
+
+                // 🔥 VERY IMPORTANT
+                if (!isMounted) return;
 
                 const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
                 localAudioRef.current = micTrack;
+
                 await client.publish([micTrack]);
 
-                console.log("Joined Agora channel:", channelName);
+                joinedRef.current = true;
+
+                console.log("✅ Joined channel:", channelName);
 
             } catch (err) {
-                console.error("Join call error:", err);
+                console.error("❌ Join error:", err);
             }
         };
 
         joinCall();
+
+        return () => {
+            isMounted = false;
+        };
+
     }, [tokenData]);
 
-
+    // ✅ TIMER
     useEffect(() => {
         if (status !== "Ongoing") return;
 
@@ -77,8 +94,7 @@ const CallById = () => {
         return () => clearInterval(interval);
     }, [status]);
 
-
-
+    // ✅ MUTE
     const toggleMute = async () => {
         if (!localAudioRef.current) return;
 
@@ -92,46 +108,69 @@ const CallById = () => {
         }
     };
 
-
-
-
+    // ✅ END CALL (NO NAVIGATION)
     const endCall = useCallback(async () => {
+        if (endingRef.current) return; // 🔥 prevent multiple calls
+        endingRef.current = true;
+
         try {
             setStatus("ended");
 
             const client = clientRef.current;
 
-            // 1. STOP REMOTE AUDIO (IMPORTANT FIX)
+            if (!client) {
+                onEndCall?.();
+                return;
+            }
+
+            // ✅ STOP REMOTE AUDIO SAFELY
             client.remoteUsers.forEach((user) => {
-                user.audioTrack?.stop();
-                user.audioTrack?.close?.();
+                try {
+                    user.audioTrack?.stop();
+                } catch { }
             });
 
-            // 2. UNPUBLISH LOCAL TRACK
-            if (localAudioRef.current && client) {
-                await client.unpublish(localAudioRef.current);
+            // ✅ STOP LOCAL TRACK SAFELY
+            if (localAudioRef.current) {
+                try {
+                    await client.unpublish(localAudioRef.current);
+                } catch (err) {
+                    console.warn("Unpublish error:", err);
+                }
 
-                localAudioRef.current.stop();
-                localAudioRef.current.close();
+                try {
+                    localAudioRef.current.stop();
+                    localAudioRef.current.close();
+                } catch { }
+
                 localAudioRef.current = null;
             }
 
-            // 3. LEAVE CHANNEL
-            if (client) {
+            // ✅ LEAVE CHANNEL SAFELY
+            try {
                 await client.leave();
+            } catch (err) {
+                console.warn("Leave error:", err);
             }
 
-            // 4. REMOVE ALL LISTENERS
-            client.removeAllListeners();
+            // ✅ CLEANUP LISTENERS
+            try {
+                client.removeAllListeners();
+            } catch { }
 
-            // 5. SAFE NAVIGATION
-            navigate("/astrologer-pendingRequest");
+            console.log("🔴 Call ended cleanly");
+
+            // ✅ RESET JOIN FLAG (IMPORTANT for next call)
+            joinedRef.current = false;
+
+            // ✅ GO BACK (Zustand clears UI)
+            onEndCall?.();
 
         } catch (err) {
-            console.error("Error ending call:", err);
+            console.error("End call error:", err);
+            onEndCall?.(); // fallback
         }
-    }, [navigate]);
-
+    }, [onEndCall]);
 
     const formatTime = (sec) => {
         const m = Math.floor(sec / 60);
@@ -139,9 +178,8 @@ const CallById = () => {
         return `${m}:${s < 10 ? "0" : ""}${s}`;
     };
 
-
     return (
-        <div className="h-screen w-full bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex flex-col items-center justify-center text-white relative">
+        <div className="h-screen w-full bg-slate-900 text-white flex flex-col items-center justify-center relative">
             <div className="flex flex-col items-center gap-3">
                 <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg">
                     U
@@ -154,16 +192,13 @@ const CallById = () => {
                 </p>
 
                 <span className="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">
-                    Call ID: {callId}
+                    Channel: {tokenData?.channelName}
                 </span>
-                <div className=" text-sm opacity-80">
-                    {status}...
-                </div>
 
+                <div className="text-sm opacity-80">{status}...</div>
             </div>
 
             <div className="flex gap-8 mt-12">
-
                 <button
                     onClick={toggleMute}
                     className={`p-5 rounded-full transition ${isMuted ? "bg-red-500" : "bg-white text-black"

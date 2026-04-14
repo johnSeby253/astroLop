@@ -6,6 +6,7 @@ const CustomTabs = ({
   tabs,
   requests,
   activeTab,
+  removeRequest = { removeRequest },
   setActiveTab,
   variant = "default", // NEW
 }) => {
@@ -81,7 +82,7 @@ const CustomTabs = ({
 
         return (
           <TabsContent key={tab.value} value={tab.value}>
-            <Component setActiveTab={setActiveTab} requests={requests} />
+            <Component setActiveTab={setActiveTab} requests={requests}  removeRequest={removeRequest} />
           </TabsContent>
         );
       })}

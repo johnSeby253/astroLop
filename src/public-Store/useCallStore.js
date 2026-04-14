@@ -1,11 +1,19 @@
-// socketStore.js
+// stores/callStore.js
 import { create } from "zustand";
 
 export const useCallStore = create((set) => ({
-  incomingCalls: [],
-  
-  addCall: (call) =>
-    set((state) => ({
-      incomingCalls: [...state.incomingCalls, call],
-    })),
+    activeCall: null,
+    isInCall: false,
+
+    startCall: (data) =>
+        set({
+            activeCall: data,
+            isInCall: true
+        }),
+
+    endCall: () =>
+        set({
+            activeCall: null,
+            isInCall: false
+        }),
 }));

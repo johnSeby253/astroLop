@@ -63,6 +63,12 @@ const AstroPendingRequest = () => {
     );
 
 
+    const removeRequest = (id) => {
+        setRequests((prev) =>
+            prev.filter((req) => (req.id || req.channelName) !== id)
+        );
+    };  
+
     return (
         <div className='px-4 flex flex-col gap-3'>
             <div className="w-full px-6 sm:px-9 py-4 sm:py-6 bg-white rounded-xl shadow-md flex flex-col gap-2.5">
@@ -80,6 +86,7 @@ const AstroPendingRequest = () => {
                 <CustomTabs
                     tabs={tabs}
                     requests={requests}
+                    removeRequest={removeRequest}
                     variant='astroTabs'
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}

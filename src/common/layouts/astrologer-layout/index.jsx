@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { matchPath, Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import rightArrow from "@/assets/admin-assets/chevron-right.svg";
 import AstrologerHeader from "./AstrologerHeader";
 import AstrologerSidebar from "./AstrologerSidebar";
+import { useCallStore } from "@/public-Store/useCallStore";
 
 const AstrologerLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const location = useLocation();
-
-    const isCallRoute = matchPath(
-        { path: "/call/:id" },
-        location.pathname
-    );
+    const isCallRoute = useCallStore((s) => s.isInCall);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(min-width: 1024px)");
