@@ -12,6 +12,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     const [status, setStatus] = useState("Ongoing");
     const [isMuted, setIsMuted] = useState(false);
     const [seconds, setSeconds] = useState(0);
+    const joiningRef = useRef(false);
     const joinedRef = useRef(false);
     const endingRef = useRef(false);
 
@@ -39,48 +40,51 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
 
     // ✅ JOIN CALL
     useEffect(() => {
-        let isMounted = true;
+        if (!tokenData) return;
 
-        if (!tokenData || joinedRef.current) return;
+
+        if (joiningRef.current === true) {
+            console.log("Already joining, blocking duplicate call.");
+            return;
+        }
+        joiningRef.current = true;
+
 
         const joinCall = async () => {
             try {
                 const client = clientRef.current;
-                if (!client || !isMounted) return;
-                if (client.connectionState === "CONNECTED") {
-                    console.warn("⚠️ Already connected, skipping join");
-                    return;
-                }
+                if (!client) return;
 
                 const { token, channelName, uid } = tokenData;
 
                 console.log("Joining with UID:", uid);
 
-                await client.join(APP_ID, channelName, token, uid);
+                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                if (joiningRef.current === true) {
+                    console.log("joiningRef is true");
+                } else {
+                    console.log("joiningRef is false");
+                    await client.join(APP_ID, channelName, token, uid);
 
-                // 🔥 VERY IMPORTANT
-                if (!isMounted) return;
+                    const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                    localAudioRef.current = micTrack;
 
-                const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                localAudioRef.current = micTrack;
+                    await client.publish([micTrack]);
+                }
 
-                await client.publish([micTrack]);
 
-                joinedRef.current = true;
+                // joinedRef.current = true;
 
                 console.log("✅ Joined channel:", channelName);
 
             } catch (err) {
                 console.error("❌ Join error:", err);
+            } finally {
+                joiningRef.current = false;
             }
         };
 
         joinCall();
-
-        return () => {
-            isMounted = false;
-        };
-
     }, [tokenData]);
 
     // ✅ TIMER
