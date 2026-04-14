@@ -42,38 +42,25 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     useEffect(() => {
         if (!tokenData) return;
 
-
-        if (joiningRef.current === true) {
-            console.log("Already joining, blocking duplicate call.");
-            return;
-        }
-        joiningRef.current = true;
-
+        if (joiningRef.current || joinedRef.current) return;
 
         const joinCall = async () => {
+            joiningRef.current = true;
+
             try {
                 const client = clientRef.current;
                 if (!client) return;
 
                 const { token, channelName, uid } = tokenData;
 
-                console.log("Joining with UID:", uid);
+                await client.join(APP_ID, channelName, token, uid);
 
-                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                if (joiningRef.current === true) {
-                    console.log("joiningRef is true");
-                } else {
-                    console.log("joiningRef is false");
-                    await client.join(APP_ID, channelName, token, uid);
+                const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                localAudioRef.current = micTrack;
 
-                    const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                    localAudioRef.current = micTrack;
+                await client.publish([micTrack]);
 
-                    await client.publish([micTrack]);
-                }
-
-
-                // joinedRef.current = true;
+                joinedRef.current = true;
 
                 console.log("✅ Joined channel:", channelName);
 
