@@ -6,6 +6,7 @@ import AdminLayout from './common/layouts/admin-layouts'
 import AdminRouteGuard from './routes/AdminRouteGuard'
 import { Toaster } from 'sonner'
 import AstrologerLayout from './common/layouts/astrologer-layout'
+import GlobalCallCenter from './common/components/GlobalCallCenter'
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
           );
         })}
       </Routes>
+       <GlobalCallCenter />
     </>
 
   )

@@ -8,41 +8,12 @@ import AllrequestTab from './PendingReqTabs/ExpertTabs/AllrequestTab';
 import VastuRequest from './PendingReqTabs/ExpertTabs/VastuRequest';
 import PoojaRequest from './PendingReqTabs/ExpertTabs/PoojaRequest';
 import { getSocket } from '@/lib/socket';
+import { useGlobalCallStore } from '@/public-Store/useGlobalCallStore';
 
 const AstroPendingRequest = () => {
     const isExpert = localStorage.getItem("isExpert") === "true";
-    const [requests, setRequests] = useState([]);
-
-    useEffect(() => {
-        const socket = getSocket();
-
-        socket.on("connect", () => {
-            console.log("Connected:", socket.id);
-
-            const receiverId = localStorage.getItem("astrologer_id");
-            console.log("receiverId", receiverId);
-
-            socket.emit("join-astrologer", receiverId);
-        });
-
-        const handleIncomingCall = (data) => {
-            console.log("Data", data);
-            setRequests((prev) => [...prev, { ...data, type: "call" }]);
-        };
-
-        const handleIncomingChat = (data) => {
-            setRequests((prev) => [...prev, { ...data, type: "chat" }]);
-        };
-
-        socket.on("incoming-call", handleIncomingCall);
-        socket.on("incoming-chat", handleIncomingChat);
-
-        return () => {
-            socket.off("incoming-call", handleIncomingCall);
-            socket.off("incoming-chat", handleIncomingChat);
-        };
-    }, []);
-
+    const requests = useGlobalCallStore((s) => s.incomingCalls);
+    const removeRequest = useGlobalCallStore((s) => s.removeCall);
 
     // Define tabs outside of the if/else
     const tabs = isExpert
@@ -63,11 +34,7 @@ const AstroPendingRequest = () => {
     );
 
 
-    const removeRequest = (id) => {
-        setRequests((prev) =>
-            prev.filter((req) => (req.id || req.channelName) !== id)
-        );
-    };  
+
 
     return (
         <div className='px-4 flex flex-col gap-3'>
