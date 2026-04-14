@@ -18,7 +18,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
 
 
 
-    // ✅ INIT CLIENT
+    //  INIT CLIENT
     useEffect(() => {
         const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         clientRef.current = client;
@@ -63,7 +63,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
 
                 joinedRef.current = true;
 
-                console.log("✅ Joined channel:", channelName);
+                console.log(" Joined channel:", channelName);
 
             } catch (err) {
                 console.error("❌ Join error:", err);
@@ -75,7 +75,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         joinCall();
     }, [tokenData]);
 
-    // ✅ TIMER
+    //  TIMER
     useEffect(() => {
         if (status !== "Ongoing") return;
 
@@ -86,7 +86,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         return () => clearInterval(interval);
     }, [status]);
 
-    // ✅ MUTE
+    //  MUTE
     const toggleMute = async () => {
         if (!localAudioRef.current) return;
 
@@ -108,7 +108,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         }
     };
 
-    // ✅ END CALL (NO NAVIGATION)
+    //  END CALL (NO NAVIGATION)
     const endCall = useCallback(async () => {
         if (endingRef.current) return; // 🔥 prevent multiple calls
         endingRef.current = true;
