@@ -9,7 +9,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     console.log("Call Data", callData);
 
 
-    const [status, setStatus] = useState("Ongoing");
+    const [status, setStatus] = useState("Connecting");
     const [isMuted, setIsMuted] = useState(false);
     const [seconds, setSeconds] = useState(0);
     const joiningRef = useRef(false);
@@ -27,15 +27,28 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
             await client.subscribe(user, mediaType);
 
             if (mediaType === "audio" && user.audioTrack) {
-                if (!user.audioTrack.isPlaying) {
-                    user.audioTrack.play();
-                }
+                user.audioTrack.play();
             }
         };
+
+        const handleConnectionChange = (cur, prev, reason) => {
+            console.log("🔄", prev, "➡", cur, reason);
+
+            if (cur === "CONNECTED") {
+                setStatus("Ongoing");
+            }
+
+            if (cur === "DISCONNECTED") {
+                setStatus("Disconnected");
+            }
+        };
+
         client.on("user-published", handleUserPublished);
+        client.on("connection-state-change", handleConnectionChange);
 
         return () => {
             client.off("user-published", handleUserPublished);
+            client.off("connection-state-change", handleConnectionChange);
         };
     }, []);
 
@@ -55,11 +68,11 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
                 const { token, channelName, uid } = tokenData;
 
                 await client.join(APP_ID, channelName, token, uid);
-
                 const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
                 localAudioRef.current = micTrack;
-
                 await client.publish([micTrack]);
+
+
 
                 joinedRef.current = true;
 
@@ -181,10 +194,10 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     return (
         <div className="h-screen w-full relative flex flex-col items-center justify-center text-white overflow-hidden">
 
-            {/* 🌈 Background image or gradient */}
+            {/* Background image or gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-black/90 to-black/80"></div>
 
-            {/* 🌟 Blur layer (glass effect) */}
+            {/* Blur layer (glass effect) */}
             <div className="absolute inset-0 backdrop-blur-2xl bg-white/5"></div>
 
 
