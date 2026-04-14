@@ -26,11 +26,12 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         const handleUserPublished = async (user, mediaType) => {
             await client.subscribe(user, mediaType);
 
-            if (mediaType === "audio") {
-                user.audioTrack.play();
+            if (mediaType === "audio" && user.audioTrack) {
+                if (!user.audioTrack.isPlaying) {
+                    user.audioTrack.play();
+                }
             }
         };
-
         client.on("user-published", handleUserPublished);
 
         return () => {
@@ -93,8 +94,15 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         setIsMuted(newMuted);
 
         try {
-            // ✅ correct Agora v4 API
+            // correct Agora v4 API
             await localAudioRef.current.setEnabled(!newMuted);
+
+            //  OPTIONAL: control remote audio too
+            clientRef.current?.remoteUsers.forEach(user => {
+                if (user.audioTrack) {
+                    user.audioTrack.setVolume(newMuted ? 0 : 100);
+                }
+            });
         } catch (err) {
             console.error("Mute error:", err);
         }
