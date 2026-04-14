@@ -172,8 +172,18 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     return (
         <div className="h-screen w-full bg-slate-900 text-white flex flex-col items-center justify-center relative">
             <div className="flex flex-col items-center gap-3">
-                <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg">
-                    U
+                <div className="relative flex items-center justify-center">
+
+                    {/* 🔵 Wave 1 */}
+                    <span className="absolute w-28 h-28 rounded-full bg-amber-300/20 animate-ping"></span>
+                    <span className="absolute w-34 h-34 rounded-full bg-white/20 animate-ping"></span>
+                    {/* 🔵 Wave 2 */}
+                    <span className="absolute w-36 h-36 rounded-full bg-white/10 animate-pulse"></span>
+
+                    {/* 🔵 Avatar */}
+                    <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg z-10">
+                        U
+                    </div>
                 </div>
 
                 <h2 className="text-2xl font-semibold">Call</h2>
@@ -183,7 +193,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
                 </p>
 
                 <span className="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">
-                    Channel: {tokenData?.channelName}
+                    Caller Id: {callData?.callerId}
                 </span>
 
                 <div className="text-sm opacity-80">{status}...</div>

@@ -9,11 +9,14 @@ import VastuRequest from './PendingReqTabs/ExpertTabs/VastuRequest';
 import PoojaRequest from './PendingReqTabs/ExpertTabs/PoojaRequest';
 import { getSocket } from '@/lib/socket';
 import { useGlobalCallStore } from '@/public-Store/useGlobalCallStore';
+import { useCallStore } from '@/public-Store/useCallStore';
 
 const AstroPendingRequest = () => {
     const isExpert = localStorage.getItem("isExpert") === "true";
     const requests = useGlobalCallStore((s) => s.incomingCalls);
     const removeRequest = useGlobalCallStore((s) => s.removeCall);
+    const isCallRoute = useCallStore((s) => s.isInCall);
+
 
     // Define tabs outside of the if/else
     const tabs = isExpert
@@ -38,16 +41,17 @@ const AstroPendingRequest = () => {
 
     return (
         <div className='px-4 flex flex-col gap-3'>
-            <div className="w-full px-6 sm:px-9 py-4 sm:py-6 bg-white rounded-xl shadow-md flex flex-col gap-2.5">
-                <div className="inline-flex justify-start items-center">
+             {!isCallRoute && (
+                <div className="w-full px-6 sm:px-9 py-4 sm:py-6 bg-white rounded-xl shadow-md flex flex-col gap-2.5">
                     <h2 className="text-zinc-800 text-xl sm:text-2xl font-semibold font-inter">
                         Pending Consultation Request
                     </h2>
+
+                    <p className="text-zinc-600 text-base sm:text-lg font-medium font-manrope">
+                        Review and respond to consultation requests from your clients
+                    </p>
                 </div>
-                <p className="text-zinc-600 text-base sm:text-lg font-medium font-manrope">
-                    Review and respond to consultation requests from your clients
-                </p>
-            </div>
+            )}
 
             <div>
                 <CustomTabs
