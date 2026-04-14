@@ -179,55 +179,83 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     };
 
     return (
-        <div className="h-screen w-full bg-black text-white flex flex-col items-center justify-center relative">
-            <div className="flex flex-col items-center gap-3">
-                <div className="flex flex-col items-center gap-10">
-                    <div className="relative flex items-center justify-center">
+        <div className="h-screen w-full relative flex flex-col items-center justify-center text-white overflow-hidden">
 
-                        {/* 🔵 Wave 1 */}
-                        <span className="absolute w-28 h-28 rounded-full bg-amber-300/20 animate-ping"></span>
-                        <span className="absolute w-34 h-34 rounded-full bg-white/20 animate-ping"></span>
-                        {/* 🔵 Wave 2 */}
-                        <span className="absolute w-36 h-36 rounded-full bg-white/10 animate-pulse"></span>
+            {/* 🌈 Background image or gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-black"></div>
 
-                        {/* 🔵 Avatar */}
-                        <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg z-10">
-                            U
+            {/* 🌟 Blur layer (glass effect) */}
+            <div className="absolute inset-0 backdrop-blur-2xl bg-white/5"></div>
+
+            {/* ✨ Glow effects */}
+            <div className="absolute w-72 h-72 bg-blue-500/20 blur-3xl rounded-full top-10 left-10"></div>
+            <div className="absolute w-72 h-72 bg-purple-500/20 blur-3xl rounded-full bottom-10 right-10"></div>
+
+            {/* content */}
+            <div className="relative z-10">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-col items-center gap-10">
+                        <div className="relative flex items-center justify-center">
+
+                            {/* 🔵 Wave 1 */}
+                            <span className="absolute w-28 h-28 rounded-full bg-amber-300/20 animate-ping"></span>
+                            <span className="absolute w-34 h-34 rounded-full bg-white/20 animate-ping"></span>
+                            {/* 🔵 Wave 2 */}
+                            <span className="absolute w-36 h-36 rounded-full bg-white/10 animate-pulse"></span>
+
+                            {/* 🔵 Avatar */}
+                            <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg z-10">
+                                U
+                            </div>
                         </div>
+
+                        <h2 className="text-2xl font-semibold">Call</h2>
                     </div>
 
-                    <h2 className="text-2xl font-semibold">Call</h2>
+
+                    <p className="text-sm opacity-80">
+                        {status === "Ongoing" ? formatTime(seconds) : "00:00"}
+                    </p>
+
+                    <span className="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">
+                        Caller Id: {callData?.callerId}
+                    </span>
+
+                    <div className="text-sm opacity-80">{status}...</div>
                 </div>
 
+                <div className="flex gap-14 mt-12">
 
-                <p className="text-sm opacity-80">
-                    {status === "Ongoing" ? formatTime(seconds) : "00:00"}
-                </p>
+                    {/* 🎤 MUTE BUTTON */}
+                    <button
+                        onClick={toggleMute}
+                        className={`p-5 rounded-full transition duration-200
+                                    backdrop-blur-xl border shadow-lg
+                                    ${isMuted
+                                ? "bg-red-500/30 border-red-400 ring-2 ring-red-400"
+                                : "bg-white/10 border-white/20"
+                            }`}
+                    >
+                        {isMuted ? <MicOff size={26} /> : <Mic size={26} />}
+                    </button>
 
-                <span className="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">
-                    Caller Id: {callData?.callerId}
-                </span>
+                    {/*  END CALL BUTTON */}
+                    <button
+                        onClick={endCall}
+                        className="p-5 rounded-full transition
+        backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg
+        hover:bg-white/20"
+                    >
+                        <PhoneOff size={28} />
+                    </button>
 
-                <div className="text-sm opacity-80">{status}...</div>
+                </div>
             </div>
 
-            <div className="flex gap-14 mt-12">
-                <button
-                    onClick={toggleMute}
-                    className={`p-5 rounded-full transition ${isMuted ? "bg-white text-black" : "bg-white text-black"
-                        }`}
-                >
-                    {isMuted ? <MicOff size={26} /> : <Mic size={26} />}
-                </button>
-
-                <button
-                    onClick={endCall}
-                    className="p-5 rounded-full bg-red-600 hover:bg-red-700 transition"
-                >
-                    <PhoneOff size={28} />
-                </button>
-            </div>
         </div>
+
+
+
     );
 };
 
