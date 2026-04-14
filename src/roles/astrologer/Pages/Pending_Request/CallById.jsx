@@ -93,7 +93,8 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         setIsMuted(newMuted);
 
         try {
-            await localAudioRef.current.setMuted(newMuted);
+            // ✅ correct Agora v4 API
+            await localAudioRef.current.setEnabled(!newMuted);
         } catch (err) {
             console.error("Mute error:", err);
         }
@@ -172,21 +173,24 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     return (
         <div className="h-screen w-full bg-slate-900 text-white flex flex-col items-center justify-center relative">
             <div className="flex flex-col items-center gap-3">
-                <div className="relative flex items-center justify-center">
+                <div className="flex flex-col items-center gap-10">
+                    <div className="relative flex items-center justify-center">
 
-                    {/* 🔵 Wave 1 */}
-                    <span className="absolute w-28 h-28 rounded-full bg-amber-300/20 animate-ping"></span>
-                    <span className="absolute w-34 h-34 rounded-full bg-white/20 animate-ping"></span>
-                    {/* 🔵 Wave 2 */}
-                    <span className="absolute w-36 h-36 rounded-full bg-white/10 animate-pulse"></span>
+                        {/* 🔵 Wave 1 */}
+                        <span className="absolute w-28 h-28 rounded-full bg-amber-300/20 animate-ping"></span>
+                        <span className="absolute w-34 h-34 rounded-full bg-white/20 animate-ping"></span>
+                        {/* 🔵 Wave 2 */}
+                        <span className="absolute w-36 h-36 rounded-full bg-white/10 animate-pulse"></span>
 
-                    {/* 🔵 Avatar */}
-                    <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg z-10">
-                        U
+                        {/* 🔵 Avatar */}
+                        <div className="w-28 h-28 rounded-full bg-white text-purple-600 flex items-center justify-center text-3xl font-bold shadow-lg z-10">
+                            U
+                        </div>
                     </div>
+
+                    <h2 className="text-2xl font-semibold">Call</h2>
                 </div>
 
-                <h2 className="text-2xl font-semibold">Call</h2>
 
                 <p className="text-sm opacity-80">
                     {status === "Ongoing" ? formatTime(seconds) : "00:00"}
@@ -199,7 +203,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
                 <div className="text-sm opacity-80">{status}...</div>
             </div>
 
-            <div className="flex gap-8 mt-12">
+            <div className="flex gap-14 mt-12">
                 <button
                     onClick={toggleMute}
                     className={`p-5 rounded-full transition ${isMuted ? "bg-red-500" : "bg-white text-black"
