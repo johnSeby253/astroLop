@@ -40,8 +40,8 @@ const AstroPendingRequest = () => {
 
 
     return (
-        <div className='px-4 flex flex-col gap-3'>
-             {!isCallRoute && (
+        <div className={`${isCallRoute ? "px-0" : "px-4"} flex flex-col gap-3`}>
+            {!isCallRoute && (
                 <div className="w-full px-6 sm:px-9 py-4 sm:py-6 bg-white rounded-xl shadow-md flex flex-col gap-2.5">
                     <h2 className="text-zinc-800 text-xl sm:text-2xl font-semibold font-inter">
                         Pending Consultation Request
