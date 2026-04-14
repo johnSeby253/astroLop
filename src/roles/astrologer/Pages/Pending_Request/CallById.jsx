@@ -179,7 +179,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
     };
 
     return (
-        <div className="h-screen w-full bg-slate-900 text-white flex flex-col items-center justify-center relative">
+        <div className="h-screen w-full bg-black text-white flex flex-col items-center justify-center relative">
             <div className="flex flex-col items-center gap-3">
                 <div className="flex flex-col items-center gap-10">
                     <div className="relative flex items-center justify-center">
@@ -214,7 +214,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
             <div className="flex gap-14 mt-12">
                 <button
                     onClick={toggleMute}
-                    className={`p-5 rounded-full transition ${isMuted ? "bg-red-500" : "bg-white text-black"
+                    className={`p-5 rounded-full transition ${isMuted ? "bg-white text-black" : "bg-white text-black"
                         }`}
                 >
                     {isMuted ? <MicOff size={26} /> : <Mic size={26} />}

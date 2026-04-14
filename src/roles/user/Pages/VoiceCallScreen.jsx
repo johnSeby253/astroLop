@@ -6,7 +6,7 @@ const VoiceCallScreen = ({ onEnd }) => {
     const [status, setStatus] = useState("Connecting...");
 
     return (
-        <div className="h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
+        <div className="h-screen bg-black text-white flex flex-col items-center justify-center">
 
             {/* Avatar */}
             <div className="w-28 h-28 rounded-full bg-slate-700 flex items-center justify-center text-3xl mb-4">
