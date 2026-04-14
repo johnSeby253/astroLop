@@ -182,14 +182,12 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
         <div className="h-screen w-full relative flex flex-col items-center justify-center text-white overflow-hidden">
 
             {/* 🌈 Background image or gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-black"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-black/90 to-black/80"></div>
 
             {/* 🌟 Blur layer (glass effect) */}
             <div className="absolute inset-0 backdrop-blur-2xl bg-white/5"></div>
 
-            {/* ✨ Glow effects */}
-            <div className="absolute w-72 h-72 bg-blue-500/20 blur-3xl rounded-full top-10 left-10"></div>
-            <div className="absolute w-72 h-72 bg-purple-500/20 blur-3xl rounded-full bottom-10 right-10"></div>
+
 
             {/* content */}
             <div className="relative z-10">
