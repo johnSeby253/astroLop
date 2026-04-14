@@ -224,7 +224,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
                     <div className="text-sm opacity-80">{status}...</div>
                 </div>
 
-                <div className="flex gap-14 mt-12">
+                <div className="flex items-center justify-center gap-14 mt-12">
 
                     {/* 🎤 MUTE BUTTON */}
                     <button
@@ -232,8 +232,8 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
                         className={`p-5 rounded-full transition duration-200
                                     backdrop-blur-xl border shadow-lg
                                     ${isMuted
-                                ? "bg-red-500/30 border-red-400 ring-2 ring-red-400"
-                                : "bg-white/10 border-white/20"
+                                ? "bg-red-500/30 border-red-400 ring-2 ring-red-400 "
+                                : "bg-white/10 border-white/20 hover:bg-[#FA2900] "
                             }`}
                     >
                         {isMuted ? <MicOff size={26} /> : <Mic size={26} />}
@@ -243,7 +243,7 @@ const CallById = ({ tokenData, callData, onEndCall }) => {
                     <button
                         onClick={endCall}
                         className="p-5 rounded-full transition
-        backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg
+        backdrop-blur-xl bg-[#FA2900] border border-white/80 shadow-card
         hover:bg-white/20"
                     >
                         <PhoneOff size={28} />
